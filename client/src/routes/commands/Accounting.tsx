@@ -3,6 +3,7 @@ import { Show, createSignal } from 'solid-js';
 import commands, { globalCommands } from '~/utils/commands';
 import toast, { Toaster } from 'solid-toast';
 
+import AccountingOutput from '~/outputs/AccountingOutput';
 import ChoiceDropdown from '~/components/ChoiceDropDown';
 import CommandHeadings from '~/components/CommandHeadings';
 import ErrorPopup from '~/components/ErrorPopup';
@@ -27,6 +28,8 @@ const choiceArray = Object.entries(AccountingCommand?.args!).map(
   }),
 );
 
+type ResultType = { rows: string[][]; rows_summary: string[][] };
+
 const Accounting = () => {
   const [errorMessage, setErrorMessage] = createSignal('');
   const [category, setCategory] = createSignal('none');
@@ -37,7 +40,7 @@ const Accounting = () => {
   const [node, setNode] = createSignal('');
   const [rateProvider, setRateProvider] = createSignal('');
   const [year, setYear] = createSignal('');
-  const [data, setData] = createSignal(undefined, {
+  const [data, setData] = createSignal<ResultType | undefined>(undefined, {
     equals: false,
   });
 
@@ -63,7 +66,7 @@ const Accounting = () => {
     // Handle the response data
     if (!!result) {
       console.log(result);
-      setData(result);
+      setData(result as ResultType);
     }
 
     toast.dismiss();
@@ -139,8 +142,16 @@ const Accounting = () => {
 
           <SubmitButton>Run Command</SubmitButton>
         </form>
+
         <Show when={errorMessage() !== ''}>
           <ErrorPopup errorMessage={errorMessage()} />
+        </Show>
+
+        <Show when={!!data() && !!data()?.rows && !!data()?.rows_summary}>
+          <AccountingOutput
+            data1={data()?.rows || [[]]}
+            data2={data()?.rows_summary || [[]]}
+          />
         </Show>
       </FlexBox>
     </>
